@@ -31,8 +31,7 @@ hogehogeセクション1のテキストです。セクション1のテキスト�
 ## セクション2
 hugahugaセクショントゥーのテキストです。
 ## サブセクション3.1
-セクションスリーのテキーストですー。
-"""
+セクションスリーのテキーストですー。"""
 
 def normalize(text):
     """
@@ -68,12 +67,28 @@ def extract_content_by_toc(toc_text:str, content:str):
         if i + 1 < len(toc_list):
             next_toc_line = toc_list[i + 1]
 
-
-        # 現在のセクションに対応するテキストを検索
-        if next_toc_line:
-            matches = list(re.finditer(f'({convert_toc_to_regex(toc_line)})(.*?)(?={convert_toc_to_regex(next_toc_line)})', normalized_content[search_start:], re.DOTALL))
-        else:
-            matches = list(re.finditer(f'({convert_toc_to_regex(toc_line)})(.*)', normalized_content[search_start:], re.DOTALL))
+            # 現在のセクションに対応するテキストを検索
+            next_toc_line_temp = next_toc_line.lstrip('#').lstrip(' ')
+        toc_line_temp = toc_line.lstrip('#').lstrip(' ')
+        
+        while True:
+            target_text = normalized_content[search_start:]
+            if next_toc_line:
+                regex_patterns = f'({convert_toc_to_regex(toc_line_temp)})(.*?)(?={convert_toc_to_regex(next_toc_line_temp)})'
+            else:
+                regex_patterns = f'({convert_toc_to_regex(toc_line_temp)})(.*)'
+            matches = list(re.finditer(regex_patterns, target_text, re.DOTALL))
+            if len(matches) > 0:
+                break
+            else:
+                if i == 0:
+                    toc_line_temp = toc_line_temp[1:-1]
+                    next_toc_line_temp = next_toc_line_temp[1:-1]
+                elif i == len(toc_list) - 1:
+                    toc_line_temp = toc_line_temp[1:-1]
+                else:
+                    next_toc_line_temp = next_toc_line_temp[1:-1]
+            
 
         # マッチしたもののうち、最長の内容を選択
         longest_match = max(matches, key=lambda m: len(m.group(2)), default=None)

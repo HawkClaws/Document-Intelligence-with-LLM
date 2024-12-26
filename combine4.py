@@ -51,7 +51,7 @@ def convert_toc_to_regex(toc):
     pattern = re.sub(r'[#\s]+', r'.*', re.escape(normalized_line))
     return re.compile(pattern).pattern
 
-def extract_content_by_toc(toc_text:str, content:str):
+def extract_content_by_toc(toc_text:str, content:str, min_length:int=4):
     """
     TOC を使って content から対応するセクションを抜き出す。
     """
@@ -88,6 +88,9 @@ def extract_content_by_toc(toc_text:str, content:str):
                     toc_line_temp = toc_line_temp[1:-1]
                 else:
                     next_toc_line_temp = next_toc_line_temp[1:-1]
+                
+                if len(toc_line_temp) < min_length or len(next_toc_line_temp) < min_length:
+                    break
             
 
         # マッチしたもののうち、最長の内容を選択

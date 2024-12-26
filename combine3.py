@@ -14,7 +14,7 @@ content = """は じめ に
 サ    ブ　セクショ ン1.1
 サブセクションのテキストです。
 セ ク シ ョ ン ２hugahuga
-セクション2のテキストです。
+セクショントゥーのテキストです。
 """
 
 # 期待される出力
@@ -26,7 +26,7 @@ hogehogeセクション1のテキストです。
 ### サブセクション1.1
 サブセクションのテキストです。
 ## セクション2
-hugahugaセクション2のテキストです。"""
+hugahugaセクショントゥーのテキストです。"""
 
 def normalize(text):
     """
@@ -60,18 +60,20 @@ def extract_content_by_toc(toc, content):
 
         # 現在のセクションに対応するテキストを検索
         if next_pattern:
-            match = re.search(f'({pattern.pattern})(.*?)(?={next_pattern.pattern})', normalized_content, re.DOTALL)
+            matches = re.finditer(f'({pattern.pattern})(.*?)(?={next_pattern.pattern})', normalized_content, re.DOTALL)
         else:
-            match = re.search(f'({pattern.pattern})(.*)', normalized_content, re.DOTALL)
+            matches = re.finditer(f'({pattern.pattern})(.*)', normalized_content, re.DOTALL)
 
-        if match:
-            extracted_text = match.group(2).strip()
+        # マッチしたもののうち、最長の内容を選択
+        longest_match = max(matches, key=lambda m: len(m.group(2)), default=None)
+
+        if longest_match:
+            extracted_text = longest_match.group(2).strip()
             # 元の目次の形式を保持しつつ結果に追加
             result.append(toc_line)
-            result.append(re.sub(r'\s+', '', extracted_text))
+            result.append(re.sub(r'\\s+', '', extracted_text))
 
     return '\n'.join(result)
-
 # 実行して結果を検証
 merged_result = extract_content_by_toc(toc, content)
 assert merged_result == expected, f"\nGot:\n{merged_result}\nExpected:\n{expected}"

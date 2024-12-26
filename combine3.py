@@ -1,17 +1,18 @@
 import re
+import unicodedata
 
 # テスト用の目次とコンテンツ
 toc = """# はじめに
 ## セクション1
-### サブセクション1.1
+## サブセクション1.1
 ## セクション2"""
 
 content = """は じめ に
 はじめにのテキストです。
 セ ク シ ョ ン 1hogehoge
-セクション1のテキストです。
-セクション1のテキストの続きです。
-サ    ブ　セクショ ン1.1
+セクション①のテキストです。
+セクション①のテキストの続きです。
+ｻ    ブ　セクショ ン1.1
 サブセクションのテキストです。
 セ ク シ ョ ン ２hugahuga
 セクショントゥーのテキストです。
@@ -21,17 +22,19 @@ content = """は じめ に
 expected = """# はじめに
 はじめにのテキストです。
 ## セクション1
-hogehogeセクション1のテキストです。
-セクション1のテキストの続きです。
-### サブセクション1.1
+hogehogeセクション1のテキストです。セクション1のテキストの続きです。
+## サブセクション1.1
 サブセクションのテキストです。
 ## セクション2
 hugahugaセクショントゥーのテキストです。"""
 
 def normalize(text):
     """
-    全角・半角やスペースを取り除いて正規化する関数。
+    全角・半角の違いを無視して正規化する関数。
     """
+    # 文字列を正規化形式「NFKC」に変換
+    text = unicodedata.normalize('NFKC', text)
+    # スペースを取り除く
     return re.sub(r'[\s\u3000]+', '', text.lower())
 
 def convert_toc_to_regex(toc):
@@ -81,5 +84,6 @@ def extract_content_by_toc(toc, content):
 
 # 実行して結果を検証
 merged_result = extract_content_by_toc(toc, content)
+print(merged_result)
 assert merged_result == expected, f"\nGot:\n{merged_result}\nExpected:\n{expected}"
 print("Test passed. The merged content matches the expected output.")

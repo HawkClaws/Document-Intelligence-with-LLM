@@ -53,6 +53,7 @@ def extract_content_by_toc(toc, content):
     regex_patterns = convert_toc_to_regex(toc)
     result = []
     normalized_content = normalize(content)
+    search_start = 0  # 検索の開始位置を管理
 
     for i, (pattern, toc_line) in enumerate(regex_patterns):
         # 次の見出しまでの範囲を抽出
@@ -60,9 +61,9 @@ def extract_content_by_toc(toc, content):
 
         # 現在のセクションに対応するテキストを検索
         if next_pattern:
-            matches = re.finditer(f'({pattern.pattern})(.*?)(?={next_pattern.pattern})', normalized_content, re.DOTALL)
+            matches = list(re.finditer(f'({pattern.pattern})(.*?)(?={next_pattern.pattern})', normalized_content[search_start:], re.DOTALL))
         else:
-            matches = re.finditer(f'({pattern.pattern})(.*)', normalized_content, re.DOTALL)
+            matches = list(re.finditer(f'({pattern.pattern})(.*)', normalized_content[search_start:], re.DOTALL))
 
         # マッチしたもののうち、最長の内容を選択
         longest_match = max(matches, key=lambda m: len(m.group(2)), default=None)
@@ -72,8 +73,12 @@ def extract_content_by_toc(toc, content):
             # 元の目次の形式を保持しつつ結果に追加
             result.append(toc_line)
             result.append(re.sub(r'\\s+', '', extracted_text))
+            # 検索開始位置を更新（ヒットした最後の位置の次から検索を開始）
+            search_start += longest_match.end()
 
     return '\n'.join(result)
+
+
 # 実行して結果を検証
 merged_result = extract_content_by_toc(toc, content)
 assert merged_result == expected, f"\nGot:\n{merged_result}\nExpected:\n{expected}"

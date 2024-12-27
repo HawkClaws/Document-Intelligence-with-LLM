@@ -1,4 +1,4 @@
-# プロジェクト名 / Project Name
+# Document-Intelligence-with-LLM
 
 
 [日本語のREADMEはこちら](README.ja.md)  

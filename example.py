@@ -58,9 +58,8 @@ if extracted_text:
     toc_content_extractor = TocContentExtractor()
     res = toc_content_extractor.extract_content_by_toc(toc_gemini, extracted_text)
     print(f"res length: {len(res)}")
-    print(res)
-
-
+    with open("output.md", "w", encoding="utf-8") as f:
+        f.write(res)
 
 else:
     print("Failed to extract text from the PDF.")

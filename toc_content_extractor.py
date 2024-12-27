@@ -2,6 +2,7 @@ from collections import Counter
 import re
 import unicodedata
 
+
 class TocContentExtractor:
     def __init__(self, toc_search_min_length: int = 6, toc_max_level: int = 3):
         self.toc_search_min_length = toc_search_min_length
@@ -26,7 +27,7 @@ class TocContentExtractor:
 
     def generate_filtered_toc(self, toc_list, toc_max_level):
         """
-        Generates a table of contents from Markdown text, filters it to include only hierarchies 
+        Generates a table of contents from Markdown text, filters it to include only hierarchies
         below the specified level, and removes duplicates and short strings.
 
         Args:
@@ -35,7 +36,7 @@ class TocContentExtractor:
             # toc_search_min_length: The minimum string length to remove (default is 4).
 
         Returns:
-            A list of table of contents (string list) below the specified level hierarchy. 
+            A list of table of contents (string list) below the specified level hierarchy.
             May return an empty list.
         """
 
@@ -45,7 +46,9 @@ class TocContentExtractor:
             if bool(re.match(r"^#{1,6}\s", item)) == False:
                 continue
             item = item.strip()
-            level = len(item) - len(item.lstrip("# ")) - 1  # Determine the level by the number of '#'
+            level = (
+                len(item) - len(item.lstrip("# ")) - 1
+            )  # Determine the level by the number of '#'
             if level <= toc_max_level:
                 filtered_toc.append(item)
 
@@ -62,16 +65,37 @@ class TocContentExtractor:
         pattern = re.sub(r"[#\s]+", r".*", re.escape(normalized_line))
         return re.compile(pattern).pattern
 
-    def extract_content_by_toc(self, toc_text: str, content: str):
+    def extract_content_by_toc(self, toc_text: str, content: str, verbose=False):
         """
         Extracts the corresponding section from the content using the TOC.
+
+        Args:
+            toc_text: The text of the table of contents.
+            content: The content to extract from.
+            verbose: If True, returns detailed information about the extraction process.
+
+        Returns:
+            If verbose is False:
+                A string containing the extracted content.
+            If verbose is True:
+                A dictionary containing:
+                    - 'extracted_content': The extracted content.
+                    - 'match_success': A list of TOC lines that were successfully matched.
+                    - 'match_failed': A list of TOC lines that failed to match.
+                    - 'toc_list': The processed table of contents list.
+                    - 'search_positions': (Optional) A list of search start positions for each TOC line.
         """
         result = []
         normalized_content = self.normalize(content)
         search_start = 0  # Manage the starting position of the search
+        match_success = []
+        match_failed = []
+        search_positions = []
 
         toc_list = toc_text.splitlines()
         toc_list = self.generate_filtered_toc(toc_list, self.toc_max_level)
+
+
         for i, toc_line in enumerate(toc_list):
             # Extract the range up to the next heading
             next_toc_line = None
@@ -85,12 +109,12 @@ class TocContentExtractor:
             while True:
                 target_text = normalized_content[search_start:]
                 if next_toc_line:
-                    regex_patterns = f"({self.convert_toc_to_regex(toc_line_temp)})(.*?)(?={self.convert_toc_to_regex(next_toc_line_temp)})"
+                    # regex_patterns = f"({self.convert_toc_to_regex(toc_line_temp)})(.*?)(?={self.convert_toc_to_regex(next_toc_line_temp)})"
                     regex_patterns = (
                         f"(.*?)(?={self.convert_toc_to_regex(next_toc_line_temp)})"
                     )
                 else:
-                    regex_patterns = f"({self.convert_toc_to_regex(toc_line_temp)})(.*)"
+                    # regex_patterns = f"({self.convert_toc_to_regex(toc_line_temp)})(.*)"
                     regex_patterns = f"(.*)"
                 matches = list(re.finditer(regex_patterns, target_text, re.DOTALL))
                 if len(matches) > 0:
@@ -108,7 +132,8 @@ class TocContentExtractor:
                         len(toc_line_temp) < self.toc_search_min_length
                         or len(next_toc_line_temp) < self.toc_search_min_length
                     ):
-                        print(f"match failed :{next_toc_line}")
+                        if verbose:
+                            match_failed.append(next_toc_line)
                         break
 
             # Select the longest content among the matches
@@ -120,11 +145,24 @@ class TocContentExtractor:
                 longest_match = matches[0]
 
                 extracted_text = longest_match.group(1).strip()
-                print(f"match success :{next_toc_line} length:{len(extracted_text)}")
+                if verbose:
+                    match_success.append(toc_line)
                 # Add to the result while keeping the original TOC format
                 result.append(toc_line)
                 result.append(re.sub(r"\\s+", "", extracted_text))
                 # Update the search start position (start searching from the next position after the last hit)
                 search_start += longest_match.end()
-            print(search_start)
-        return "\n".join(result)
+            if verbose:
+                search_positions.append(search_start)
+
+        if verbose:
+            return {
+                "markdown_content": "\n".join(result),
+                "markdown_content_list": result,
+                "match_success": match_success,
+                "match_failed": match_failed,
+                "toc_list": toc_list,
+                "search_positions": search_positions,
+            }
+        else:
+            return "\n".join(result)

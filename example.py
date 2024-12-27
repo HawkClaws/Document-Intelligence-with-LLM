@@ -9,7 +9,7 @@ from pdfminer.pdfpage import PDFPage
 from pdfminer.pdfparser import PDFParser
 
 from create_toc import create_toc
-from toc_content_matcher import TocContentMatcher
+from toc_content_extractor import TocContentExtractor
 
 # 環境変数を設定 (APIキー)
 # 複数のモデルを使用する場合は、それぞれのAPIキーを環境変数に設定してください
@@ -57,8 +57,8 @@ if extracted_text:
     # Geminiで目次生成
     print(f"extracted_text length: {len(extracted_text)}")
     toc_gemini = create_toc(extracted_text, model="gemini/gemini-1.5-flash")
-    toc_content_matcher = TocContentMatcher()
-    res = toc_content_matcher.extract_content_by_toc(toc_gemini, extracted_text)
+    toc_content_extractor = TocContentExtractor()
+    res = toc_content_extractor.extract_content_by_toc(toc_gemini, extracted_text)
     print(f"res length: {len(res)}")
     print(res)
 

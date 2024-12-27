@@ -3,7 +3,7 @@ import re
 import unicodedata
 
 
-class TocContentMatcher:
+class TocContentExtractor:
     def __init__(self, toc_search_min_length: int = 6, toc_max_level: int = 3):
         self.toc_search_min_length = toc_search_min_length
         self.toc_max_level = toc_max_level

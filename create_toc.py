@@ -1,3 +1,6 @@
+from litellm import completion
+
+
 MARKDOWN_PROMPT_TEMPLATE = """
 ## Instructions
 
@@ -16,24 +19,17 @@ Please structure the provided text for chunking in RAG (Retrieval-Augmented Gene
 
 """
 
-
-import os
-import io
-import litellm
-from litellm import completion
-
-
 def create_toc(text, model):
     """
-    指定されたモデルを使用してテキストから目次(TOC)を生成する関数。
+    Generates a table of contents (TOC) from the given text using the specified model.
 
     Args:
-        text: 目次を生成する元のテキスト。
-        model: 使用するモデル (例: "gemini/gemini-pro", "gpt-3.5-turbo", "claude-2")。
+        text: The original text to generate the TOC from.
+        model: The model to use (e.g., "gemini/gemini-pro", "gpt-3.5-turbo", "claude-2").
 
     Returns:
-        生成された目次 (Markdown形式の文字列)。
-        エラーが発生した場合はNoneを返す。
+        The generated TOC in Markdown format (string).
+        Returns None if an error occurs.
     """
     try:
         prompt = MARKDOWN_PROMPT_TEMPLATE.format(text=text)
@@ -45,4 +41,3 @@ def create_toc(text, model):
     except Exception as e:
         print(f"Error during completion with model {model}: {e}")
         return None
-

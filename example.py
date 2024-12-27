@@ -11,30 +11,29 @@ from pdfminer.pdfparser import PDFParser
 from create_toc import create_toc
 from toc_content_extractor import TocContentExtractor
 
-# 環境変数を設定 (APIキー)
-# 複数のモデルを使用する場合は、それぞれのAPIキーを環境変数に設定してください
-# 例:
+# Set environment variables (API keys)
+# If using multiple models, set the API keys for each model in the environment variables
+# Example:
 # os.environ["GEMINI_API_KEY"] = "YOUR_OPENAI_API_KEY"
 # os.environ["OPENAI_API_KEY"] = "YOUR_OPENAI_API_KEY"
 # os.environ["ANYSCALE_API_KEY"] = "YOUR_ANYSCALE_API_KEY"
 
-
 def extract_text_from_pdf(pdf_path):
     """
-    PDFファイルからテキストを抽出する関数。
+    Function to extract text from a PDF file.
 
     Args:
-        pdf_path: PDFファイルへのパス。
+        pdf_path: Path to the PDF file.
 
     Returns:
-        抽出されたテキスト (文字列)。
+        Extracted text (string).
     """
     with open(pdf_path, 'rb') as f:
         parser = PDFParser(f)
         doc = PDFDocument(parser)
         rsrcmgr = PDFResourceManager()
         laparams = LAParams()
-        # 縦書きをそれとして判定してもらうための設定。
+        # Setting to recognize vertical writing as such.
         laparams.detect_vertical = True
         output_string = io.StringIO()
         converter = TextConverter(rsrcmgr, output_string, laparams=laparams)
@@ -48,13 +47,12 @@ def extract_text_from_pdf(pdf_path):
         output_string.close()
         return text
 
-
-# 使用例
-pdf_file_path = "RAGの精度改善ハンドブック【第1回参加賞：2024年11月25日】.pdf"  # 実際のPDFファイルパスに置き換えてください
+# Example usage
+pdf_file_path = "RAGの精度改善ハンドブック【第1回参加賞：2024年11月25日】.pdf"  # Replace with the actual PDF file path
 extracted_text = extract_text_from_pdf(pdf_file_path)
 
 if extracted_text:
-    # Geminiで目次生成
+    # Generate table of contents with Gemini
     print(f"extracted_text length: {len(extracted_text)}")
     toc_gemini = create_toc(extracted_text, model="gemini/gemini-1.5-flash")
     toc_content_extractor = TocContentExtractor()
